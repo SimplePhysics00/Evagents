@@ -94,7 +94,7 @@ namespace UIKeys {
 	const char FOLLOW[] = "Follow";
 	const char DAMAGE[] = "Damage Sources";
 	const char INTAKE[] = "Intake Sources";
-	const char LAD_DATAMODE[] = "LAD Data Mode (All, Stats, Traits)";
+	const char LAD_DATAMODE[] = "LAD Data Mode (Common, Traits, Stats)";
 	const char LAD_PREVIOUS[] = "Select Previous Agent";
 
 }
@@ -581,6 +581,7 @@ const enum {
 	SEXIEST,
 	GENEROUS_EST,
 	KINRANGE_EST,
+    LARGEST, // this is the final entry for shift + number, no more are possible
 
 	//Don't add beyond this entry!
 	SELECT_TYPES
@@ -919,7 +920,8 @@ namespace conf {
 	const float BRAIN_BOX_BIAS_STD = 0.5;  //std of the randn centered on 0 that new box biases generate with.
 	const float BRAIN_BOX_GW_RANGE = 2; // +/- range of values new box global weights generate within.
 	const float BRAIN_BOX_KP_MAX = 1.5; //max value between [0,this) that new box kp (dampening) values generate within. Remember that the difference to a new output is multiplied by this to get the target value
-	const float WEIGHT_WITHER_CHANCE_MULT = 2.0; //multiplier times the weight itself to the chance that it decays to 0. A weight of 1/this or more will have no chance of decay
+	const float WEIGHT_WITHER_CHANCE_MULT_INIT = 2.0; //multiplier times the weight itself to the threshold & chance that it decays to 0, for birth mutations. A weight of 1/this or more will have no chance of decay
+    const float WEIGHT_WITHER_CHANCE_MULT_LIVE = 8.0; //multiplier times the weight itself to the threshold & chance that it decays to 0, for live mutations. A weight of 1/this or more will have no chance of decay
 	const float LEARN_RATE = 0.001; // rate of Stimulant effecting weights. TODO: (.cfg) CHANGE TO LEARN FROM USER INPUT?
 	const float BRAIN_DIRECTINPUTS = 0.3; //probability of random brain conns on average which will connect directly to inputs
 	const float BRAIN_NEGATIVE_GW_BOXES = 0.2; //probability and approx ratio of random brain's boxes that will have a negative global weight
@@ -1009,11 +1011,11 @@ namespace conf {
 	const float JAW_MAX_FOV = M_PI/6; //the angle maximim from the center of the jaws direction where other agents may be bitten, in radians. From center to each edge, double this for full range
 
 	//life and death things
-	const float HEALTH_CAP= 10.0; //max health value of agents
-	const int FRESHKILLTIME= 50; //(.cfg)
-	const int CORPSE_FRAMES= 400; //(.cfg)
-	const float CORPSE_MEAT_MIN= 0.25; //(.cfg)
-	const float DEAD_SLOWDOWN= 0.8; //slowdown multiplier of agent speed when they die
+	const float HEALTH_CAP = 10.0; //max health value of agents
+	const int FRESHKILLTIME = 70; //(.cfg)
+	const int CORPSE_FRAMES = 500; //(.cfg)
+	const float CORPSE_MEAT_MIN = 0.25; //(.cfg)
+	const float DEAD_SLOWDOWN = 0.8; //slowdown multiplier of agent speed when they die
 
 	//Health losses
 	const int MAXAGE=10000; //(.cfg)
@@ -1075,8 +1077,8 @@ namespace conf {
 
     const char MEAT_TEXT[]= "Meat Food";
 	const float MEAT_INTAKE= 0.055; //(.cfg)
-	const float MEAT_DECAY= 0.00001; //(.cfg)
-	const float MEAT_WASTE= 0.0016; //(.cfg)
+	const float MEAT_DECAY= 0.000005; //(.cfg)
+	const float MEAT_WASTE= 0.0014; //(.cfg)
 	const float MEAT_DEPOSIT_VALUE= 1.0; //(.cfg)
 	const float MEAT_NON_FRESHKILL_MULT = 0.5; //(.cfg)
 	//Meat comes from dead bots, and is the fastest form of nutrition, IF bots can learn to find it before it decays (or make it themselves...)
@@ -1085,9 +1087,9 @@ namespace conf {
 	const float HAZARD_EVENT_MULT= 4.0; //(.cfg)
 	const float HAZARD_DECAY= 0.000001; //(.cfg)
 	const float HAZARD_DEPOSIT= 0.0001; //(.cfg)
-	const float HAZARD_DAMAGE= 0.0032;//0.0032; //(.cfg)
+	const float HAZARD_DAMAGE= 0.0035; //(.cfg)
 	const float HAZARD_POWER= 0.5; //(.cfg)
-	const float HAZARD_EVENT_POINT= 0.9; //this value splits the range of hazard into two: below, normal, above, event, with EVENT_MULT applied and special logic
+	const float HAZARD_EVENT_POINT= 0.9; //this value splits the range of hazard into two: below, normal; above, event with EVENT_MULT applied and special logic
 	}
 
 #endif

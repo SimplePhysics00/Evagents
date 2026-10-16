@@ -107,33 +107,33 @@ void Gene::birthMutate(float basechance, float basesize) {
 
 	switch (this->type) {
 		// here be magic numbers - don't worry about it, at least all the gene mutation rates are here in one place
-		case Trait::SPECIESID :				chance *= 10;		size = (0.5 + basesize*50);								 break;
-		case Trait::KINRANGE :				chance *= 5;	size = (1 + basesize*3*(this->value + 1)); break;
-		case Trait::BRAIN_MUTATION_CHANCE : chance = conf::META_MUTCHANCE*2;	size = conf::META_MUTSIZE*3;			 break;
-		case Trait::BRAIN_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE;				 break;
-		case Trait::GENE_MUTATION_CHANCE :  chance = conf::META_MUTCHANCE*2;	size = conf::META_MUTSIZE*3;			 break;
-		case Trait::GENE_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE;				 break;
-		case Trait::RADIUS :				chance *= 8;		size *= 16;												 break;
-		case Trait::SKIN_RED :				chance *= 4;		size *= 2;												 break;
-		case Trait::SKIN_GREEN :			chance *= 4;		size *= 2;												 break;
-		case Trait::SKIN_BLUE :				chance *= 4;		size *= 2;												 break;
-		case Trait::SKIN_CHAMOVID :			chance *= 2;																 break;
-		case Trait::STRENGTH :									size *= 4;												 break;
-		case Trait::THERMAL_PREF :			chance *= 2;		size /= 2;												 break;
-		case Trait::LUNGS :					chance *= 2;		size /= 2;												 break;
-		case Trait::NUM_BABIES :			chance /= 2;		size = (0.1 + basesize*50);								 break;
-		case Trait::SEX_PROJECT_BIAS :		chance *= 4;		size *= 5;												 break;
-		case Trait::METABOLISM :			chance /= 2;		size *= 2;												 break;
+		case Trait::SPECIESID :				chance *= 10;		size = (0.5 + basesize*50);							 break;
+		case Trait::KINRANGE :				chance *= 5;	    size = (1 + basesize*3*(this->value + 1));           break;
+		case Trait::BRAIN_MUTATION_CHANCE : chance = conf::META_MUTCHANCE*2;	size = conf::META_MUTSIZE*3;		 break;
+		case Trait::BRAIN_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE;			 break;
+		case Trait::GENE_MUTATION_CHANCE :  chance = conf::META_MUTCHANCE*2;	size = conf::META_MUTSIZE*3;		 break;
+		case Trait::GENE_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE;			 break;
+		case Trait::RADIUS :				chance *= 8;		size *= 16;											 break;
+		case Trait::SKIN_RED :				chance *= 2;		size *= 2;											 break;
+		case Trait::SKIN_GREEN :			chance *= 2;		size *= 2;											 break;
+		case Trait::SKIN_BLUE :				chance *= 2;		size *= 2;											 break;
+		case Trait::SKIN_CHAMOVID :			chance *= 2;															 break;
+		case Trait::STRENGTH :									size *= 2;											 break;
+		case Trait::THERMAL_PREF :			chance *= 2;		size /= 2;											 break;
+		case Trait::LUNGS :					chance *= 2;		size /= 4;											 break;
+		case Trait::NUM_BABIES :			chance /= 2;		size = (0.1 + basesize*50);							 break;
+		case Trait::SEX_PROJECT_BIAS :		chance *= 4;		size *= 5;											 break;
+		case Trait::METABOLISM :			chance /= 2;		size *= 2;											 break;
 		case (Trait::STOMACH + Stomach::PLANT) :	
 		case (Trait::STOMACH + Stomach::FRUIT) :	
-		case (Trait::STOMACH + Stomach::MEAT): chance *= 6;		size *= 2;												 break;
-		case Trait::CLOCK1_FREQ : /*no changes to base rates, still mutates*/											 break;
-		case Trait::CLOCK2_FREQ :																						 break;
-		case Trait::EYE_SEE_AGENTS: 							size *= 4;												 break;
-		case Trait::EYE_SEE_CELLS :								size *= 4;												 break;
-		case Trait::EAR_HEAR_AGENTS:							size *= 4;												 break;
-		case Trait::BLOOD_SENSE :								size *= 4;												 break;
-		case Trait::SMELL_SENSE :								size *= 4;												 break;
+		case (Trait::STOMACH + Stomach::MEAT): chance *= 6;		size *= 2;											 break;
+		case Trait::CLOCK1_FREQ : /*no changes to base rates, still mutates*/										 break;
+		case Trait::CLOCK2_FREQ :																					 break;
+		case Trait::EYE_SEE_AGENTS: 							size *= 4;											 break;
+		case Trait::EYE_SEE_CELLS :								size *= 4;											 break;
+		case Trait::EAR_HEAR_AGENTS:							size *= 4;											 break;
+		case Trait::BLOOD_SENSE :								size *= 4;											 break;
+		case Trait::SMELL_SENSE :								size *= 4;											 break;
 
 		default : break; // don't modify either chance or size for all other cases
 	}
@@ -146,33 +146,33 @@ void Gene::liveMutate(float basechance, float basesize) {
 	float size = basesize / 4;
 
 	switch (this->type) {
-		case Trait::SPECIESID :				chance = 0; /*disable mutation*/											 break;
-		case Trait::KINRANGE :									size *= 10;												 break;
-		case Trait::BRAIN_MUTATION_CHANCE : chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE*20;			 break;
-		case Trait::BRAIN_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE/2;			 break;
-		case Trait::GENE_MUTATION_CHANCE :  chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE*20;			 break;
-		case Trait::GENE_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE/2;			 break;
-		case Trait::RADIUS :				chance = 0; /*disable mutation*/											 break;
-		case Trait::SKIN_RED :									size *= 2;												 break;
-		case Trait::SKIN_GREEN :								size *= 2;												 break;
-		case Trait::SKIN_BLUE :									size *= 2;												 break;
-		case Trait::SKIN_CHAMOVID :																						 break;
-		case Trait::STRENGTH :				chance *= 2;		size *= 2;												 break;
-		case Trait::THERMAL_PREF :			chance *= 2;																 break;
-		case Trait::LUNGS :					chance = 0; /*disable mutation*/											 break;
-		case Trait::NUM_BABIES :			chance = 0; /*disable mutation*/											 break;
-		case Trait::SEX_PROJECT_BIAS :		chance *= 2;		size *= 2;												 break;
-		case Trait::METABOLISM :			chance *= 2;		size /= 2;												 break;
+		case Trait::SPECIESID :				chance = 0; /*disable mutation*/										 break;
+		case Trait::KINRANGE :									size *= 10;											 break;
+		case Trait::BRAIN_MUTATION_CHANCE : chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE*20;		 break;
+		case Trait::BRAIN_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE/2;		 break;
+		case Trait::GENE_MUTATION_CHANCE :  chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE*20;		 break;
+		case Trait::GENE_MUTATION_SIZE :	chance = conf::META_MUTCHANCE;		size = conf::META_MUTSIZE/2;		 break;
+		case Trait::RADIUS :				chance = 0; /*disable mutation*/										 break;
+		case Trait::SKIN_RED :									size *= 2;											 break;
+		case Trait::SKIN_GREEN :								size *= 2;											 break;
+		case Trait::SKIN_BLUE :									size *= 2;											 break;
+		case Trait::SKIN_CHAMOVID :																					 break;
+		case Trait::STRENGTH :				chance *= 2;		size *= 2;											 break;
+		case Trait::THERMAL_PREF :			chance *= 2;															 break;
+		case Trait::LUNGS :					chance = 0; /*disable mutation*/										 break;
+		case Trait::NUM_BABIES :			chance = 0; /*disable mutation*/										 break;
+		case Trait::SEX_PROJECT_BIAS :		chance *= 2;		size *= 2;											 break;
+		case Trait::METABOLISM :			chance *= 2;		size /= 2;											 break;
 		case (Trait::STOMACH + Stomach::PLANT) :	
 		case (Trait::STOMACH + Stomach::FRUIT) :	
-		case (Trait::STOMACH + Stomach::MEAT): chance *= 2;		size *= 3;												 break;
-		case Trait::CLOCK1_FREQ :			chance *= 2;		size /= 2;												 break;
-		case Trait::CLOCK2_FREQ :			chance *= 2;		size /= 2;												 break;
-		case Trait::EYE_SEE_AGENTS: 							size *= 4;												 break;
-		case Trait::EYE_SEE_CELLS :								size *= 4;												 break;
-		case Trait::EAR_HEAR_AGENTS:							size *= 4;												 break;
-		case Trait::BLOOD_SENSE :								size *= 4;												 break;
-		case Trait::SMELL_SENSE :								size *= 4;												 break;
+		case (Trait::STOMACH + Stomach::MEAT): chance *= 2;		size *= 3;											 break;
+		case Trait::CLOCK1_FREQ :			chance *= 2;		size /= 2;											 break;
+		case Trait::CLOCK2_FREQ :			chance *= 2;		size /= 2;											 break;
+		case Trait::EYE_SEE_AGENTS: 							size *= 4;											 break;
+		case Trait::EYE_SEE_CELLS :								size *= 4;											 break;
+		case Trait::EAR_HEAR_AGENTS:							size *= 4;											 break;
+		case Trait::BLOOD_SENSE :								size *= 4;											 break;
+		case Trait::SMELL_SENSE :								size *= 4;											 break;
 
 		default : break; // don't modify either chance or size for all other cases
 	}

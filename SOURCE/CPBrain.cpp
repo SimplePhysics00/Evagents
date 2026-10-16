@@ -271,7 +271,7 @@ void CPBrain::initMutate(float MR, float MR2)
 
 	for(int i = 0; i < randi(1,6); i++){
         //possibly add between 0 (rand chance) and 5 new connections. Since it's rerolled every loop, it's possible to cut the loop short, so 0-1 is most likely
-		if (randf(0,1) < MR/10) {
+		if (randf(0,1) < MR) {
 			//Add conn
 			CPConn a = CPConn((int)boxes.size());
 			a.w *= conf::BRAIN_CONN_WEIGHT_MUTATION_DAMPEN; //new conns in a surviving brain get reduced weight and bias
@@ -392,7 +392,7 @@ void CPBrain::initMutate(float MR, float MR2)
 
 		if (randf(0,1) < MR/5) {
 			//weight wither
-			if(randf(0,1) > fabs(conns[i].w)*conf::WEIGHT_WITHER_CHANCE_MULT) {
+			if(randf(0,1) > fabs(conns[i].w)*conf::WEIGHT_WITHER_CHANCE_MULT_INIT) {
 				//the closer to 0 it already is, the higher the chance it gets set to 0.
 				conns[i].w = 0;
 				conns[i].seed = 0;
@@ -499,15 +499,15 @@ void CPBrain::initMutate(float MR, float MR2)
 	resetBrain();
 }
 
-void CPBrain::liveMutate(float MR, float MR2, vector<float>& out)
+void CPBrain::liveMutate(float MR, float MR2, float stim, float health)
 {
 	//for mutations which may occur while the bot is live
 	//live mutations are applied to the boxes and conns as normal, but only jiggle changes are allowed
 	int randconn = randi(0, conns.size());
 
-	if (conf::LEARN_RATE > 0 && conns[randconn].sid >= 0 && randf(0,1) < MR/8) {
+	/*if (conf::LEARN_RATE > 0 && conns[randconn].sid >= 0 && randf(0,1)*health < MR/10) {
+        //healthy agents are less likely to have this happen
 		//stimulate box weight: boxes that fire together, strengthen
-		float stim = out[Output::STIMULANT];
 		if (stim > 0.5) {
 			//modify weights based on matching old output and old input, if stimulant is active
 			float sourceoldout = boxes[boxRef(conns[randconn].sid)].oldout;
@@ -515,12 +515,12 @@ void CPBrain::liveMutate(float MR, float MR2, vector<float>& out)
 			conns[randconn].w += conf::LEARN_RATE * (2*stim - 1) * (1 - abs(targetoldout - sourceoldout));
             mutations[Mutation::LIVE_CONN_STIMULATE_W]++;
 		}
-	}
+	}*/
 
 	if (randf(0,1) < MR/5) {
 		//weight wither
-		if(randf(0,1) > fabs(conns[randconn].w)*2*conf::WEIGHT_WITHER_CHANCE_MULT) {
-			//the closer to 0 it already is, the higher the chance it gets set to 0. *2 makes it rarer for live mutations
+		if(randf(0,1) > fabs(conns[randconn].w)*conf::WEIGHT_WITHER_CHANCE_MULT_LIVE) {
+			//the closer to 0 it already is, the higher the chance it gets set to 0.
 			conns[randconn].w = 0;
 			conns[randconn].seed = 0;
             mutations[Mutation::LIVE_CONN_WITHER_W]++;

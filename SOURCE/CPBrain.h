@@ -72,7 +72,7 @@ public:
 //	std::vector<int> traceBack(int outback);
 
     void initMutate(float MR, float MR2);
-	void liveMutate(float MR, float MR2, std::vector<float>& out);
+	void liveMutate(float MR, float MR2, float stim, float health);
     CPBrain crossover(const CPBrain& other);
 
 

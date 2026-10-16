@@ -2010,7 +2010,7 @@ void World::processOutputs(bool prefire)
 		a->jawOldOutput= a->out[Output::JAW];
 
 		//clock 3 gets frequency set by output, but not immediately
-		a->clockf3+= 0.05*(95*(1-a->out[Output::CLOCKF3])+5 - a->clockf3); //exhaustion doesn't effect clock freq
+		a->clockf3+= 0.05*(95*(1-a->out[Output::CLOCKF3])+5) - a->clockf3; //exhaustion doesn't effect clock freq
 		if(a->clockf3>100) a->clockf3= 100;
 		if(a->clockf3<2) a->clockf3= 2;
 
@@ -2040,6 +2040,15 @@ void World::processOutputs(bool prefire)
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < (int)agents.size(); i++) {
 			Agent* a = &agents[i];
+
+            // move in the 3rd dimension!
+            if(a->pos.z > 0) {
+				a->zvelocity -= GRAVITY_ACCELERATION;
+				a->pos.z += a->zvelocity;
+			} else {
+				a->zvelocity = 0;
+				a->pos.z = 0;
+			}
 
 			//first calculate the exact wheel scalar values
 			float basewheel = 1;
@@ -2078,15 +2087,6 @@ void World::processOutputs(bool prefire)
 			}
 			if (a->angle<-M_PI) a->angle= a->angle + 2*M_PI;
 			if (a->angle>M_PI) a->angle= a->angle - 2*M_PI;
-
-            // move in the 3rd dimension!
-            if(a->pos.z > 0) {
-				a->zvelocity -= GRAVITY_ACCELERATION;
-				a->pos.z += a->zvelocity;
-			} else {
-				a->zvelocity = 0;
-				a->pos.z = 0;
-			}
 
 			//wrap around the map
 			a->borderRectify();
@@ -2609,7 +2609,7 @@ void World::processAgentInteractions()
 void World::resetAgentGrab(Agent *a, bool play_sfx) {
 	a->grabID= -1;
 	if (play_sfx) {
-		tryPlayAudio(conf::SFX_RIP1, a->pos.x, a->pos.y, randn(1.0,0.2), 0.75);
+		tryPlayAudio(conf::SFX_RIP1, a->pos.x, a->pos.y, randn(1.1,0.1), 0.75);
 	}
 }
 
@@ -2761,7 +2761,7 @@ void World::processDeath()
 float World::getDroppedMeat(Agent* a)
 {
 	float agemult =  a->age<TENDERAGE ? ((float)a->age+1)*INV_TENDERAGE : 1.0; //young killed agents should give very little resources until age 9
-	float freshmult = a->freshkill>0 ? 1.0 : MEAT_NON_FRESHKILL_MULT; //agents which were spiked recently will give full meat, otherwise give MEAT_NON_FRESHKILL_MULT
+	float freshmult = a->freshkill > 0 ? 1.0 : MEAT_NON_FRESHKILL_MULT; //agents which were spiked recently will give full meat, otherwise give MEAT_NON_FRESHKILL_MULT
 	float stomachmult = 1+(conf::CARNIVORE_TO_MEAT_EFF-1)*sqrt(a->traits[Trait::STOMACH + Stomach::MEAT]); //carnivores give less, specified by CARNIVORE_TO_MEAT_EFF
 
 	return MEAT_DEPOSIT_VALUE*agemult*freshmult*stomachmult;
@@ -2794,195 +2794,205 @@ void World::processRandomSpawn()
 void World::setSelection(int type) 
 //Control.cpp?
 {
-	int maxi= -1;
+	int maxi = -1;
 	//to find the desired selection, we must process all agents. Lets do this sparingly unless no-one is selected
-	if (SELECTION==-1 || modcounter%15==0){
-		if (type==Select::NONE) {
+	if (SELECTION == -1 || modcounter%15 == 0){
+		if (type == Select::NONE) {
 			//easy enough: if none desired, set selection ID to negative
 			PREV_SELECTION = SELECTION;
-			SELECTION= -1;
-		} else if (type==Select::OLDEST) {
+			SELECTION = -1;
+		} else if (type == Select::OLDEST) {
 			//oldest: simply compare all agents age's and when we find the highest one, save its index
-			int maxage= -1;
-			for (int i=0; i<(int)agents.size(); i++) {
-				if (!agents[i].isDead() && agents[i].age>maxage) { 
-				   maxage= agents[i].age; 
-				   maxi= i;
+			int maxage = -1;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				if (!agents[i].isDead() && agents[i].age > maxage) { 
+				   maxage = agents[i].age; 
+				   maxi = i;
 			   }
 			}
-		} else if(type==Select::BEST_GEN){
+		} else if (type == Select::BEST_GEN){
 			//highest generation: same as with Oldest, but this time the generation counter
-			int maxgen= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-			   if (!agents[i].isDead() && agents[i].gencount>maxgen) { 
-				   maxgen= agents[i].gencount; 
-				   maxi= i;
+			int maxgen = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+			   if (!agents[i].isDead() && agents[i].gencount > maxgen) { 
+				   maxgen = agents[i].gencount; 
+				   maxi = i;
 			   }
 			}
-		} else if(type==Select::HEALTHY){
+		} else if (type == Select::HEALTHY){
 			//Healthiest: this one's tricky, and part of the reason this is on mod % 15, otherwise it bounces constantly
-			float maxhealth= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-				if (agents[i].health>maxhealth) {
-					maxhealth= agents[i].health;
-					maxi= i;
+			float maxhealth = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				if (agents[i].health > maxhealth) {
+					maxhealth = agents[i].health;
+					maxi = i;
 				}
 			}
-		} else if(type==Select::ENERGETIC){
+		} else if (type == Select::ENERGETIC){
 			//Energetic: finds agent with most energy (lowest exhaustion value)
-			float minexhaust= 1000;
-			for (int i=0; i<(int)agents.size(); i++) {
-				if (!agents[i].isDead() && agents[i].age>0 && agents[i].exhaustion<minexhaust) {
-					minexhaust= agents[i].exhaustion;
-					maxi= i;
+			float minexhaust = 1000;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				if (!agents[i].isDead() && agents[i].age > 0 && agents[i].exhaustion < minexhaust) {
+					minexhaust = agents[i].exhaustion;
+					maxi = i;
 				}
 			}
-		} else if(type==Select::PRODUCTIVE){
-			float maxprog= 0;
+		} else if (type == Select::PRODUCTIVE){
+			float maxprod = 0;
 			//Productivity: find the agent who's been most successful at having children
-			for (int i=0; i<(int)agents.size(); i++) {
-				if(!agents[i].isDead() && agents[i].age!=0){
-					float prog= (float)agents[i].children/sqrt((float)agents[i].age);
+			for (int i = 0; i < (int)agents.size(); i++) {
+				if (!agents[i].isDead() && agents[i].age != 0){
+					float prod = (float)agents[i].children/sqrt((float)agents[i].age);
 					//note: productivity needs to be / age b/c otherwise the oldest will almost always be the most productive
 						//and we're using sqrt because pow^1 it would be inverse (youngest who just had babies is always selected)
 						//we want a middle-ground: select the middle-aged agent who's had the most babies
-					if (prog>maxprog){
-						maxprog= prog;
-						maxi= i;
+					if (prod > maxprod){
+						maxprod = prod;
+						maxi = i;
 					}
 				}
 			}
-		} else if (type==Select::AGGRESSIVE){
+		} else if (type == Select::AGGRESSIVE){
 			//Aggressiveness: this mode calculates a score via (# of hits)*0.25 + (# killed), and whoever has the highest score wins
-			float maxindex= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float index= 0.25*agents[i].hits + agents[i].killed;
-				if (!agents[i].isDead() && index>maxindex) {
-					maxindex= index;
-					maxi= i;
+			float maxindex = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float index = 0.25*agents[i].hits + agents[i].killed;
+				if (!agents[i].isDead() && index > maxindex) {
+					maxindex = index;
+					maxi = i;
 				}
 			}
-		} else if (type==Select::RELATIVE){
+		} else if (type == Select::RELATIVE){
 			//Relative: this special mode will calculate the closest relative to the selected if the selected died. Good mode to leave on fast mode
-			int select= getSelectedAgentIndex();
-			if(select>=0){
-				if(agents[select].isDead()){
-					int index= getClosestRelative(select);
-					if(index>=0) {
-						maxi= index;
+			int select = getSelectedAgentIndex();
+			if (select >= 0){
+				if (agents[select].isDead()){
+					int index = getClosestRelative(select);
+					if (index >= 0) {
+						maxi = index;
 					}
-				} else maxi= select;
+				} else maxi = select;
 			}
-		} else if (type==Select::BEST_HERBIVORE){
+		} else if (type == Select::BEST_HERBIVORE){
 			//best of a given stomach type, not counting gen 0. calculates stomach score and then compares; unlike types subtract at half value
-			float maxindex= -1;
-			for (int i=0; i<(int)agents.size(); i++) {
+			float maxindex = -1;
+			for (int i = 0; i < (int)agents.size(); i++) {
 				float index = agents[i].traits[Trait::STOMACH + Stomach::PLANT] - 
 					0.5*agents[i].traits[Trait::STOMACH + Stomach::MEAT] - 
 					0.5*agents[i].traits[Trait::STOMACH + Stomach::FRUIT];
-				if (!agents[i].isDead() && agents[i].gencount>0 && index>maxindex) {
-					maxindex= index;
-					maxi= i;
+				if (!agents[i].isDead() && agents[i].gencount > 0 && index > maxindex) {
+					maxindex = index;
+					maxi = i;
 				}
 			}
-		} else if (type==Select::BEST_FRUGIVORE){
+		} else if (type == Select::BEST_FRUGIVORE){
 			//best of a given stomach type, not counting gen 0. calculates stomach score and then compares; unlike types subtract at half value
-			float maxindex= -1;
-			for (int i=0; i<(int)agents.size(); i++) {
+			float maxindex = -1;
+			for (int i = 0; i < (int)agents.size(); i++) {
 				float index = agents[i].traits[Trait::STOMACH + Stomach::FRUIT] - 
 					0.5*agents[i].traits[Trait::STOMACH + Stomach::MEAT] - 
 					0.5*agents[i].traits[Trait::STOMACH + Stomach::PLANT];
-				if (!agents[i].isDead() && agents[i].gencount>0 && index>maxindex) {
-					maxindex= index;
-					maxi= i;
+				if (!agents[i].isDead() && agents[i].gencount > 0 && index > maxindex) {
+					maxindex = index;
+					maxi = i;
 				}
 			}
-		} else if (type==Select::BEST_CARNIVORE){
+		} else if (type == Select::BEST_CARNIVORE){
 			//best of a given stomach type, not counting gen 0. calculates stomach score and then compares; unlike types subtract at half value
-			float maxindex= -1;
-			for (int i=0; i<(int)agents.size(); i++) {
+			float maxindex = -1;
+			for (int i = 0; i < (int)agents.size(); i++) {
 				float index = agents[i].traits[Trait::STOMACH + Stomach::MEAT] - 
 					0.5*agents[i].traits[Trait::STOMACH + Stomach::FRUIT] -
 					0.5*agents[i].traits[Trait::STOMACH + Stomach::PLANT];
-				if (!agents[i].isDead() && agents[i].gencount>0 && index>maxindex) {
-					maxindex= index;
-					maxi= i;
+				if (!agents[i].isDead() && agents[i].gencount > 0 && index > maxindex) {
+					maxindex = index;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::BEST_AQUATIC) {
 			//best aquatic (lung=0) living with gen > 0, earliest born if multiple
-			float minlung= 1000;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float lung= agents[i].traits[Trait::LUNGS];
-				if (!agents[i].isDead() && agents[i].gencount>0 && lung < minlung) {
-					minlung= lung;
-					maxi= i;
+			float minlung = 1000;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float lung = agents[i].traits[Trait::LUNGS];
+				if (!agents[i].isDead() && agents[i].gencount > 0 && lung < minlung) {
+					minlung = lung;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::BEST_AMPHIBIAN) {
-			//best amphibian (lung=0.5, or whatever Elevation::BEACH_MID is) living with gen > 0
-			float minindex= 1000;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float index= abs(agents[i].traits[Trait::LUNGS] - Elevation::BEACH_MID);
-				if (!agents[i].isDead() && agents[i].gencount>0 && index < minindex) {
-					minindex= index;
-					maxi= i;
+			//best amphibian (lung = 0.5, or whatever Elevation::BEACH_MID is) living with gen > 0
+			float minindex = 1000;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float index = abs(agents[i].traits[Trait::LUNGS] - Elevation::BEACH_MID);
+				if (!agents[i].isDead() && agents[i].gencount > 0 && index < minindex) {
+					minindex = index;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::BEST_TERRESTRIAL) {
 			//best terrestrial (lung=1) living with gen > 0, earliest born if multiple
-			float maxlung= -1;
-			for (int i=0; i<(int)agents.size(); i++) {
+			float maxlung = -1;
+			for (int i = 0; i < (int)agents.size(); i++) {
 				float lung= agents[i].traits[Trait::LUNGS];
-				if (!agents[i].isDead() && agents[i].gencount>0 && lung > maxlung) {
-					maxlung= lung;
-					maxi= i;
+				if (!agents[i].isDead() && agents[i].gencount > 0 && lung > maxlung) {
+					maxlung = lung;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::FASTEST) {
 			//fastest agent moving (boost also taken into account)
-			float maxspeed= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float speed= agents[i].w1 * agents[i].w2;
-				if (agents[i].boost) speed*= BOOST_MOVE_MULT;
+			float maxspeed = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float speed = agents[i].w1 * agents[i].w2;
+				if (agents[i].boost) speed *= BOOST_MOVE_MULT;
 				if (!agents[i].isDead() && speed > maxspeed) {
-					maxspeed= speed;
-					maxi= i;
+					maxspeed = speed;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::SEXIEST) {
 			//most sex-projecting agent. Will most likely be male if any exist (most male-ness?), and will exclude assexual agents
-			float maxproj= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float proj= agents[i].sexproject;
+			float maxproj = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float proj = agents[i].sexproject;
 				if (!agents[i].isDead() && proj > maxproj) {
-					maxproj= proj;
-					maxi= i;
+					maxproj = proj;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::GENEROUS_EST) {
 			//most generous agent (by their give output)
-			float maxgive= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float give= agents[i].give;
+			float maxgive = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float give = agents[i].give;
 				if (!agents[i].isDead() && give > maxgive) {
-					maxgive= give;
-					maxi= i;
+					maxgive = give;
+					maxi = i;
 				}
 			}
 		} else if (type == Select::KINRANGE_EST) {
 			//widest kinrange of all alive
-			float maxrange= 0;
-			for (int i=0; i<(int)agents.size(); i++) {
-				float range= agents[i].traits[Trait::KINRANGE];
+			float maxrange = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+				float range = agents[i].traits[Trait::KINRANGE];
 				if (!agents[i].isDead() && range > maxrange) {
-					maxrange= range;
+					maxrange = range;
+					maxi = i;
+				}
+			}
+        } else if (type == Select::LARGEST) {
+			//largest radius of all alive
+			float maxrad = 0;
+			for (int i = 0; i < (int)agents.size(); i++) {
+                float rad = agents[i].traits[Trait::RADIUS];
+				if (!agents[i].isDead() && rad > maxrad) {
+					maxrad = rad;
 					maxi= i;
 				}
 			}
 		} //note: do not handle Manual - as the name implies, it is not an autoselect mode
 			
-		if (maxi!=-1) {
+		if (maxi != -1) {
 			if (!isAgentSelected(agents[maxi].id)) {
 				setSelectedAgent(maxi);
 				if (type == Select::RELATIVE) tryPlayAudio(conf::SFX_UI_RELATIVESELECT);
@@ -3151,6 +3161,7 @@ bool World::selectPreviousSelected()
 		int temp = SELECTION;
 		SELECTION = PREV_SELECTION;
 		PREV_SELECTION = temp;
+        lifepath.clear();
 		return true;
 	}
 	return false;
@@ -4639,7 +4650,7 @@ void World::writeConfig()
 	fprintf(cf, "HEALTHLOSS_SPIKE_EXT= %f \t//how much health an agent looses for extending spike. Contributes to the death cause '%s'.\n", conf::HEALTHLOSS_SPIKE_EXT, conf::DEATH_SPIKERAISE);
 	fprintf(cf, "HEALTHLOSS_BADTERRAIN= %f //how much health is lost if in totally opposite environment. Contributes to the death cause '%s'.\n", conf::HEALTHLOSS_BADTERRAIN, conf::DEATH_BADTERRAIN);
 	fprintf(cf, "HEALTHLOSS_NOOXYGEN= %f \t//how much agents are penalized when total agents = AGENTS_MAX_NOOXYGEN. Contributes to the death cause '%s'.\n", conf::HEALTHLOSS_NOOXYGEN, conf::DEATH_TOOMANYAGENTS);
-	fprintf(cf, "HEALTHLOSS_ASEX= %f \t//multiplier for radius/MEANRADIUS penalty on mother for asexual reproduction. If set to > 2 (the health of agents), it will additionally apply a penalty to the children. Contributes to the death cause '%s'.\n", conf::HEALTHLOSS_ASEX, conf::DEATH_ASEXUAL);
+	fprintf(cf, "HEALTHLOSS_ASEX= %f \t//multiplier for radius/MEANRADIUS penalty on mother for asexual reproduction. If set to > HEALTH_CAP, it will additionally apply a penalty to the children. Contributes to the death cause '%s'.\n", conf::HEALTHLOSS_ASEX, conf::DEATH_ASEXUAL);
 	fprintf(cf, "\n");
 	fprintf(cf, "DAMAGE_FULLSPIKE= %f \t//health multiplier of spike injury. Note: it is effected by spike length and relative velocity of the agents. When used against another agent, it causes the death cause '%s'.\n", conf::DAMAGE_FULLSPIKE, conf::DEATH_SPIKE);
 	fprintf(cf, "DAMAGE_COLLIDE= %f \t//how much health is lost upon collision. Note that =0 does not disable the event (see BUMP_DAMAGE_OVERLAP above). When used against another agent, it causes the death cause '%s'.\n", conf::DAMAGE_COLLIDE, conf::DEATH_COLLIDE);

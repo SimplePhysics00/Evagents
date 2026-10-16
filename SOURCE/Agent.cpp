@@ -441,7 +441,7 @@ void Agent::liveMutate(int MUTMULT, int OVERRIDE_KINRANGE)
 	//mutate between 1 and 5 brain boxes, plus a ratio from the brain_mutation_chance (+1 at a chance of 0.05)
 	int randboxes = randi(1,6) + 20*BMR;
 	for(int i= 0; i < randboxes; i++){
-		this->brain.liveMutate(BMR, BMR2, this->out);
+        this->brain.liveMutate(BMR, BMR2, this->out[Output::STIMULANT], this->health);
 	}
 
 	//mutate some Genes according to limited rules of the live mutation

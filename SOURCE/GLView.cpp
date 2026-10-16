@@ -1034,6 +1034,7 @@ void GLView::gluiCreateMenu()
 		else if(i==Select::SEXIEST) strcpy(text, "Sexiest");
 		else if(i==Select::GENEROUS_EST) strcpy(text, "Most Generous");
 		else if(i==Select::KINRANGE_EST) strcpy(text, "Largest Kinrange");
+        else if(i==Select::LARGEST) strcpy(text, "Largest Radius");
 		else strcpy(text, "UNKNOWN_Select");
 
 		new GLUI_RadioButton(group_select,text);
@@ -3782,6 +3783,7 @@ void GLView::drawStatic()
 					case Select::SEXIEST : sprintf(buf, "Sexual Projection Autoselect");	break;
 					case Select::GENEROUS_EST : sprintf(buf, "Most Generous Autoselect");	break;
 					case Select::KINRANGE_EST : sprintf(buf, "Highest Kin Range Autoselect"); break;
+                    case Select::LARGEST : sprintf(buf, "Largest Radius Autoselect");       break;
 					default : sprintf(buf, "UNKNOWN_Select");
 				}
 				RenderStringBlack(10, currentline*spaceperline, GLUT_BITMAP_HELVETICA_12, buf, 0.5f, 0.8f, 0.5f);
